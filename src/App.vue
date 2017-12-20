@@ -1,20 +1,21 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
-    <h1>{{ msg }}</h1>
-    <h2>Essential Links</h2>
+
+    <h2>Envoyer un message</h2>
+    <form action="#" @submit.prevent="send">
+      <label for="pseudo">Pseudo :</label>
+      <input type="text" id="pseudo" v-model.trim="pseudo" placeholder="John Doe...">
+
+      <label for="message"> Message :</label>
+      <input type="text" id="message" v-model.trim="message" placeholder="Bonjour tout le monde">
+
+      <input type="submit" value="Send" />
+    </form>
+    <h2>Liste des messages</h2>
     <ul>
-      <li><a href="https://vuejs.org" target="_blank">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank">Twitter</a></li>
-    </ul>
-    <h2>Ecosystem</h2>
-    <ul>
-      <li><a href="http://router.vuejs.org/" target="_blank">vue-router</a></li>
-      <li><a href="http://vuex.vuejs.org/" target="_blank">vuex</a></li>
-      <li><a href="http://vue-loader.vuejs.org/" target="_blank">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank">awesome-vue</a></li>
+      <li v-for="(message, index) of lastMessages" :key="index">
+        <strong>{{message.author}}</strong> écrit : {{message.text}}
+      </li>
     </ul>
   </div>
 </template>
@@ -27,11 +28,33 @@ export default {
   name: 'app',
   data () {
     return {
-      msg: 'ReactJs > Dépour-VueJs / Yarn > Npmerde'
+      socket : null,
+      messages: [],
+      pseudo : null,
+      message : null
+    }
+  },
+  methods: {
+    send() {
+      const newMessage = {
+        author: this.pseudo, text: this.message
+      }
+
+      this.socket.emit('message', newMessage)
+
+      this.messages.push(newMessage)
+    }
+  },
+  computed: {
+    lastMessages() {
+      return this.messages.slice(-10)
     }
   },
   created () {
-    io('//localhost:50437')
+    this.socket = io('//localhost:50437')
+    this.socket.on('message', message => {
+      this.messages.push(message)
+    })
   }
 }
 </script>
